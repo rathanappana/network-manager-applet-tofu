@@ -29,6 +29,7 @@
 #include "applet-dialogs.h"
 #include "nma-wifi-dialog.h"
 #include "applet-vpn-request.h"
+#include "applet-certificate-agent.h"
 #include "utils.h"
 
 #if WITH_WWAN
@@ -3403,6 +3404,8 @@ applet_startup (GApplication *app, gpointer user_data)
 	if (with_agent)
 		register_agent (applet);
 
+	applet_certificate_agent_register ();
+
 	g_application_hold (G_APPLICATION (applet));
 }
 
@@ -3444,6 +3447,8 @@ static void finalize (GObject *object)
 #endif
 
 	g_clear_object (&applet->agent);
+
+	applet_certificate_agent_unregister ();
 
 	G_OBJECT_CLASS (nma_parent_class)->finalize (object);
 }
