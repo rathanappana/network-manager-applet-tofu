@@ -8,6 +8,7 @@ subdir('connection-editor')
 sources = files(
   'ap-menu-item.c',
   'applet-agent.c',
+  'applet-certificate-agent.c',
   'applet.c',
   'applet-device-bt.c',
   'applet-device-ethernet.c',
