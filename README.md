@@ -28,7 +28,7 @@ Instead, it sends a D-Bus request to a registered "Certificate Agent."
 
 ## Build and Installation Guide
 
-These instructions are tailored for Debian/Ubuntu-based systems. We recommend installing this custom applet to a local directory (like `~/.local/tofu-nm-applet`) so you can test it without overwriting your system's default network icon.
+These instructions are tailored for Debian/Ubuntu-based systems. We recommend installing this custom applet systemwide. so you can start connecting to the network by selecting tray icon .
 
 
 > <span style="color:red">**Prerequisite:** You must have source repositories (`deb-src`) enabled in your APT configuration (e.g., `/etc/apt/sources.list.d/ubuntu.sources`) to fetch NetworkManager's build dependencies.</span>
@@ -36,7 +36,7 @@ These instructions are tailored for Debian/Ubuntu-based systems. We recommend in
 
 ### Option A: Quick Install (Recommended for Researchers/Testing)
 
-For artifact evaluation or quick setup, use the provided installation script. It will automatically install dependencies, compile the code, and install it to `~/.local/tofu_nm_applet`.
+For artifact evaluation or quick setup, use the provided installation script. It will automatically install dependencies, compile the code, and install it to system wide.
 
 ```bash
 git clone https://github.com/rathanappana/network-manager-applet-tofu.git
@@ -61,14 +61,14 @@ sudo apt build-dep network-manager-applet
 
 2. Configure and compile:
 ```bash
-# Configure the build with a custom local prefix to avoid system conflicts
-meson setup build --prefix=$HOME/.local/tofu_nm_applet
+# Configure the build system wide
+meson setup build --prefix=/usr --sysconfdir=/etc
 ninja -C build
 ```
 
-3. Install locally
+3. Install systemwide
 ```bash
-ninja -C build install
+sudo ninja -C build install
 ```
 
 If your desktop environment is already running the system's default nm-applet, you need to kill the existing one and start your modified version.
@@ -77,7 +77,7 @@ If your desktop environment is already running the system's default nm-applet, y
 # Kill the system's default nm-applet
 killall nm-applet
 # Start the modified TOFU-enabled nm-applet in the background
-~/.local/tofu_nm_applet/bin/nm-applet &
+nm-applet &
 ```
 
 Note: The applet relies on the TOFU-enabled NetworkManager daemon. Ensure the modified daemon is running, then try connecting to a TOFU-enabled Enterprise network (or use the `mac80211_hwsim` simulation script provided in the backend repository) to see the pop-up in action.
