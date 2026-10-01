@@ -15,8 +15,6 @@
 #define CERT_AGENT_OBJECT_PATH "/org/freedesktop/NetworkManager/CertificateAgent"
 #define CERT_AGENT_IFACE       "org.freedesktop.NetworkManager.CertificateAgent"
 #define NM_DBUS_NAME           "org.freedesktop.NetworkManager"
-#define NM_DBUS_PATH           "/org/freedesktop/NetworkManager"
-#define NM_DBUS_IFACE          "org.freedesktop.NetworkManager"
 
 static const char cert_agent_xml[] =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -226,7 +224,12 @@ static const GDBusInterfaceVTable cert_agent_vtable = {
 
 /*****************************************************************************/
 
-/* Register with NM daemon — object is already on bus, just tell NM about it. */
+/* Register with NM daemon via the same AgentManager.RegisterWithCapabilities
+ * every other secret agent uses (see applet-agent.c) — object is already on
+ * bus, just tell NM about it. NM_SECRET_AGENT_CAPABILITY_WIFI_TOFU is what
+ * lets NM's nm_agent_manager_find_secret_agent() find this process for a
+ * TOFU popup, filtered by that capability plus the real ACL/UID checks
+ * GetSecrets already applies — no separate registration entry point needed. */
 static void
 nm_register_cert_agent (void)
 {
@@ -235,17 +238,19 @@ nm_register_cert_agent (void)
 
     reply = g_dbus_connection_call_sync (s_conn,
                                           NM_DBUS_NAME,
-                                          NM_DBUS_PATH,
-                                          NM_DBUS_IFACE,
-                                          "RegisterCertificateAgent",
-                                          g_variant_new ("(o)", CERT_AGENT_OBJECT_PATH),
+                                          "/org/freedesktop/NetworkManager/AgentManager",
+                                          "org.freedesktop.NetworkManager.AgentManager",
+                                          "RegisterWithCapabilities",
+                                          g_variant_new ("(su)",
+                                                         "nm-applet-tofu",
+                                                         (guint32) NM_SECRET_AGENT_CAPABILITY_WIFI_TOFU),
                                           NULL,
                                           G_DBUS_CALL_FLAGS_NONE,
                                           5000,
                                           NULL,
                                           &error);
     if (!reply) {
-        g_warning ("CertificateAgent: RegisterCertificateAgent failed: %s", error->message);
+        g_warning ("CertificateAgent: RegisterWithCapabilities failed: %s", error->message);
         g_error_free (error);
         return;
     }
@@ -326,9 +331,9 @@ applet_certificate_agent_unregister (void)
 
     g_dbus_connection_call_sync (s_conn,
                                   NM_DBUS_NAME,
-                                  NM_DBUS_PATH,
-                                  NM_DBUS_IFACE,
-                                  "UnregisterCertificateAgent",
+                                  "/org/freedesktop/NetworkManager/AgentManager",
+                                  "org.freedesktop.NetworkManager.AgentManager",
+                                  "Unregister",
                                   NULL,
                                   NULL,
                                   G_DBUS_CALL_FLAGS_NONE,
