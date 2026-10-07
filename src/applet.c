@@ -90,7 +90,19 @@ applet_stop_wifi_scan (NMApplet *applet, gpointer unused)
 static void
 applet_menu_about_to_show_cb (NMApplet *applet, gpointer unused)
 {
+	applet->wifi_submenu_is_shown = TRUE;
 	applet_request_wifi_scan (applet);
+}
+
+static void
+applet_menu_event_cb (NMApplet *applet, const char *name, GVariant *value, guint timestamp)
+{
+	if (g_strcmp0 (name, "closed") == 0) {
+		applet->wifi_submenu_is_shown = FALSE;
+		applet_schedule_update_menu (applet);
+	} else if (g_strcmp0 (name, "opened") == 0) {
+		applet->wifi_submenu_is_shown = TRUE;
+	}
 }
 
 static void
@@ -112,6 +124,7 @@ applet_workaround_show_cb (NMApplet *applet, gpointer unused)
 	if (!applet->app_indicator_show_signal_received) {
 		applet->app_indicator_show_signal_received = TRUE;
 		g_signal_connect_swapped (root_menu_item, "about-to-show", G_CALLBACK (applet_menu_about_to_show_cb), applet);
+		g_signal_connect_swapped (root_menu_item, "event", G_CALLBACK (applet_menu_event_cb), applet);
 	} else {
 		GtkMenu *menu = app_indicator_get_menu (applet->app_indicator);
 
@@ -1959,7 +1972,7 @@ applet_update_menu (gpointer user_data)
 	/* Skip update if WiFi submenu is currently shown.
 	 * We'll reschedule when the submenu is hidden.
 	 */
-	if (!INDICATOR_ENABLED (applet) && applet->wifi_submenu_is_shown) {
+	if (applet->wifi_submenu_is_shown) {
 		applet->update_menu_id = 0;
 		return G_SOURCE_REMOVE;
 	}
