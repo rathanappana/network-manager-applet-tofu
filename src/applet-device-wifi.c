@@ -916,10 +916,12 @@ wifi_add_menu_item (NMDevice *device,
 		g_slist_free (sorted_subitems);
 
 		/* Track submenu visibility to prevent updates while browsing */
-		g_signal_connect_swapped (submenu, "show",
-		                          G_CALLBACK (nma_wifi_submenu_show_cb), applet);
-		g_signal_connect_swapped (submenu, "hide",
-		                          G_CALLBACK (nma_wifi_submenu_hide_cb), applet);
+		if (!INDICATOR_ENABLED (applet)) {
+			g_signal_connect_swapped (submenu, "show",
+			                          G_CALLBACK (nma_wifi_submenu_show_cb), applet);
+			g_signal_connect_swapped (submenu, "hide",
+			                          G_CALLBACK (nma_wifi_submenu_hide_cb), applet);
+		}
 	} else
 		gtk_widget_set_sensitive (subitem, FALSE);
 
