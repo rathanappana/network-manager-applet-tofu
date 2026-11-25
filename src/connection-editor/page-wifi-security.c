@@ -78,6 +78,39 @@ static const char *known_8021x_props[] = {
 	NULL
 };
 
+#ifdef NM_SETTING_802_1X_TRUST_ON_FIRST_USE
+/* With trust on first use, NetworkManager sets these to the trust that the
+ * user confirmed. */
+static const char *known_8021x_tofu_props[] = {
+	NM_SETTING_802_1X_TRUST_ON_FIRST_USE,
+	NM_SETTING_802_1X_SERVER_CERT_HASH,
+	NM_SETTING_802_1X_SYSTEM_CA_CERTS,
+	NM_SETTING_802_1X_DOMAIN_MATCH,
+	NULL
+};
+#endif
+
+static void
+check_unsupported_8021x_properties (NMConnectionEditor *editor, NMSetting8021x *s_8021x)
+{
+	gs_unref_ptrarray GPtrArray *known = g_ptr_array_new ();
+	guint i;
+
+	for (i = 0; known_8021x_props[i]; i++)
+		g_ptr_array_add (known, (gpointer) known_8021x_props[i]);
+#ifdef NM_SETTING_802_1X_TRUST_ON_FIRST_USE
+	if (NM_LIBNM_COMPAT_UNDEPRECATE (nm_setting_802_1x_get_trust_on_first_use (s_8021x))) {
+		for (i = 0; known_8021x_tofu_props[i]; i++)
+			g_ptr_array_add (known, (gpointer) known_8021x_tofu_props[i]);
+	}
+#endif
+	g_ptr_array_add (known, NULL);
+
+	nm_connection_editor_check_unsupported_properties (editor,
+	                                                   (NMSetting *) s_8021x,
+	                                                   (const char *const *) known->pdata);
+}
+
 static gboolean
 find_proto (NMSettingWirelessSecurity *sec, const char *item)
 {
@@ -539,7 +572,7 @@ ce_page_wifi_security_new (NMConnectionEditor *editor,
 	    || default_type == NMU_SEC_WPA_ENTERPRISE
 	    || default_type == NMU_SEC_WPA2_ENTERPRISE) {
 		*out_secrets_setting_name = NM_SETTING_802_1X_SETTING_NAME;
-		nm_connection_editor_check_unsupported_properties (editor, (NMSetting *) s_8021x, known_8021x_props);
+		check_unsupported_8021x_properties (editor, s_8021x);
 	}
 
 	nm_connection_editor_check_unsupported_properties (editor, (NMSetting *) s_wsec, known_wsec_props);
