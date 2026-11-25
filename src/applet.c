@@ -3229,6 +3229,11 @@ register_agent (NMApplet *applet)
 	g_signal_connect (applet->agent, APPLET_AGENT_CANCEL_SECRETS,
 	                  G_CALLBACK (applet_agent_cancel_secrets_cb), applet);
 
+	applet->certificate_agent = applet_certificate_agent_new (
+	    applet->nm_client,
+	    NM_LIBNM_COMPAT_UNDEPRECATE (
+	        nm_secret_agent_old_get_dbus_connection (NM_SECRET_AGENT_OLD (applet->agent))));
+
 	if (INDICATOR_ENABLED (applet)) {
 		/* Watch for new connections */
 		g_signal_connect_swapped (applet->nm_client, NM_CLIENT_CONNECTION_ADDED,
@@ -3443,6 +3448,7 @@ static void finalize (GObject *object)
 	g_clear_object (&applet->mm1);
 #endif
 
+	g_clear_pointer (&applet->certificate_agent, applet_certificate_agent_free);
 	g_clear_object (&applet->agent);
 
 	G_OBJECT_CLASS (nma_parent_class)->finalize (object);

@@ -26,6 +26,7 @@
 #include <NetworkManager.h>
 
 #include "applet-agent.h"
+#include "applet-certificate-agent.h"
 
 #if WITH_WWAN
 #include <libmm-glib.h>
@@ -72,6 +73,7 @@ typedef struct {
 
 	NMClient *nm_client;
 	AppletAgent *agent;
+	AppletCertificateAgent *certificate_agent;
 
 	GSettings *gsettings;
 

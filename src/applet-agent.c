@@ -821,11 +821,17 @@ applet_agent_handle_vpn_only (AppletAgent *agent, gboolean vpn_only)
 AppletAgent *
 applet_agent_new (GError **error)
 {
+	NMSecretAgentCapabilities capabilities = NM_SECRET_AGENT_CAPABILITY_VPN_HINTS;
 	AppletAgent *agent;
+
+#ifdef NM_SETTING_802_1X_TRUST_ON_FIRST_USE
+	/* See applet-certificate-agent.c. */
+	capabilities |= NM_SECRET_AGENT_CAPABILITY_TRUST_ON_FIRST_USE;
+#endif
 
 	agent = g_object_new (APPLET_TYPE_AGENT,
 	                      NM_SECRET_AGENT_OLD_IDENTIFIER, "org.freedesktop.nm-applet",
-	                      NM_SECRET_AGENT_OLD_CAPABILITIES, NM_SECRET_AGENT_CAPABILITY_VPN_HINTS,
+	                      NM_SECRET_AGENT_OLD_CAPABILITIES, capabilities,
 	                      NULL);
 	if (!g_initable_init (G_INITABLE (agent), NULL, error)) {
 		g_object_unref (agent);
