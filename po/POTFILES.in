@@ -13,6 +13,7 @@ src/applet-device-ethernet.c
 src/applet-device-wifi.c
 src/applet-dialogs.c
 src/applet-vpn-request.c
+src/applet-certificate-agent.c
 src/applet.c
 src/applet.h
 src/connection-editor/ce-ip4-routes.ui
