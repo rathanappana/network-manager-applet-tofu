@@ -2020,11 +2020,19 @@ out:
 	return G_SOURCE_REMOVE;
 }
 
+/* Rebuilding the Wi-Fi submenu destroys and recreates every
+ * GtkMenuItem (applet_update_menu() above). Over AppIndicator/dbusmenu export,
+ * doing that on every AP-list change (every scan tick) makes the host
+ * re-render the open menu out from under the user's click before it lands.
+ * A flat minimum spacing between rebuilds gives clicks a stable target;
+ * a real fix would diff and update existing items in place instead. */
+#define APPLET_MENU_UPDATE_THROTTLE_MS 1000
+
 void
 applet_schedule_update_menu (NMApplet *applet)
 {
 	if (!applet->update_menu_id)
-		applet->update_menu_id = g_idle_add (applet_update_menu, applet);
+		applet->update_menu_id = g_timeout_add (APPLET_MENU_UPDATE_THROTTLE_MS, applet_update_menu, applet);
 }
 
 /*****************************************************************************/
